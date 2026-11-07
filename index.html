@@ -68,7 +68,7 @@ return l.map(i=>{const v=von(i);return `<div class="it" onclick="ed('${i.id}')">
 V.hh=()=>`${LN()}<div class="row np"><input id="q" placeholder="Tìm hàng…" value="${E(Q)}" oninput="Q=this.value;$('#lst').innerHTML=LS()"><button class="btn" style="flex:0 0 auto" onclick="ed()">+ Thêm</button></div>
 <div class="card" id="lst">${LS()}</div>
 <div class="row np"><button class="btn o" onclick="xp('ban')">Xuất CSV Bán hàng</button><button class="btn o" onclick="xp('dat')">Xuất CSV Đặt hàng</button></div>
-<div class="row np" style="margin-top:8px"><button class="btn o" onclick="$('#fc').click()">Nhập CSV</button></div>
+<div class="row np" style="margin-top:8px"><button class="btn o" onclick="$('#fc').click()">Nhập CSV</button><button class="btn o" onclick="bg()">🖼 Bảng giá ảnh</button></div>
 <input id="fc" type="file" accept=".csv" hidden onchange="imc(this)">`;
 function ed(id){ED=id?JSON.parse(JSON.stringify(S.items.find(i=>i.id==id))):{id:'',t:'b',g:'',n:'',u:'cái',cost:0,q:1,lu:'thùng',ing:[],waste:S.cfg.waste,extra:S.cfg.extra,price:0};EM()}
 function gf(){const v=s=>($(s)||{}).value;ED.n=v('#en')??ED.n;ED.g=v('#eg')??ED.g;ED.u=v('#eu')??ED.u;
@@ -143,7 +143,7 @@ return `${RVC()}<div class="card"><b>Báo cáo</b><div class="sm">${it.length} h
 <p><b>Lãi trung bình theo nhóm</b></p>${Object.keys(gs).map(g=>`<div class="it"><span>${E(g)}</span><b>${AV(gs[g]).toFixed(1)}%</b></div>`).join('')}
 <p><b>Mô phỏng: giá nhập tăng</b> <input style="width:72px;display:inline" inputmode="decimal" value="${SM}" oninput="SM=num(this.value);$('#sim').innerHTML=SIM()"> %</p><div id="sim">${SIM()}</div></div>
 <div class="card"><b>Lịch sử tính giá</b>${S.log.slice(0,50).map(l=>`<div class="it"><div>${E(l.n)}<div class="sm">${new Date(l.d).toLocaleDateString('vi-VN')} · vốn ${fm(l.v)}</div></div><b>${l.o?fm(l.o)+' → ':''}${fm(l.p)}</b></div>`).join('')||'<div class="sm">Chưa có lần nào. Vào tab Tính giá, chọn hàng rồi bấm “Lưu giá”.</div>'}</div>
-<div class="row np"><button class="btn o" onclick="shr()">Chia sẻ phiếu đổi giá</button><button class="btn o" onclick="print()">In</button></div>`};
+<div class="row np"><button class="btn o" onclick="shr()">Chia sẻ phiếu đổi giá</button><button class="btn o" onclick="print()">In</button></div><div class="row np" style="margin-top:8px"><button class="btn o" onclick="pdg()">🖼 Phiếu đổi giá (ảnh)</button></div>`};
 function shr(){const t=S.log.filter(l=>l.o&&l.o!=l.p&&Date.now()-l.d<6048e5).map(l=>`${l.n}: ${fm(l.o)} → ${fm(l.p)}`).join('\n');
 if(!t)return alert('Không có món nào đổi giá trong 7 ngày qua');
 const x=`Phiếu đổi giá - ${S.cfg.name}\n${new Date().toLocaleDateString('vi-VN')}\n${t}`;
@@ -183,5 +183,32 @@ S.items.push(i);S.log.unshift({d:Date.now(),id:i.id,n,g:i.g,v:Math.round(r.v),o:
 const GPC=()=>{const c=S.cfg,G=[...new Set(S.items.map(x=>x.g))];return G.length?`<div class="card"><b>% riêng theo nhóm</b><div class="sm">Để trống là dùng % mặc định. Giá trị hiểu theo cách tính đang chọn.</div>${G.map((g,k)=>`<label>${E(g)}</label><input inputmode="decimal" value="${c.gp[g]??''}" onchange="gset(${k},this.value)">`).join('')}</div>`:''};
 function gset(k,v){const g=[...new Set(S.items.map(x=>x.g))][k];if(String(v).trim()==='')delete S.cfg.gp[g];else S.cfg.gp[g]=num(v);TG.p=null;save();R()}
 S.cfg.gp=S.cfg.gp||{};S.items.forEach(i=>{if(i.price&&!i.vs)i.vs=von(i)});
+/* ---------- Bản 3: bảng giá và phiếu đổi giá dạng ảnh ---------- */
+let PG=[];
+function bg(){const G=[...new Set(S.items.filter(i=>i.price>0).map(x=>x.g))];if(!G.length)return alert('Chưa có hàng nào có giá bán');
+$('#mb').innerHTML=`<h3 style="font-family:Fraunces,serif">Bảng giá ảnh</h3><label>Nhóm hàng</label><select id="bgs"><option value="">Tất cả nhóm</option>${G.map(g=>`<option>${E(g)}</option>`).join('')}</select><label>Tiêu đề (để trống là “Bảng giá”)</label><input id="bgt"><div class="row" style="margin-top:8px"><button class="btn" onclick="bgm()">Tạo ảnh</button><button class="btn o" onclick="$('#md').classList.remove('on')">Đóng</button></div>`;$('#md').classList.add('on')}
+function bgm(){const g=$('#bgs').value,t=$('#bgt').value.trim()||'Bảng giá',rows=[];let cur=null;
+S.items.filter(i=>i.price>0&&(!g||i.g==g)).sort((a,b)=>a.g.localeCompare(b.g,'vi')||a.n.localeCompare(b.n,'vi')).forEach(i=>{if(i.g!=cur){cur=i.g;rows.push({h:cur})}rows.push({l:i.n+' ('+i.u+')',r:fm(i.price)})});
+dr(t,rows)}
+function pdg(){const m={};[...S.log].reverse().forEach(l=>{if(l.o&&Date.now()-l.d<6048e5){const x=m[l.id]||(m[l.id]={n:l.n,o:l.o});x.p=l.p}});
+const rows=Object.values(m).filter(x=>x.o!=x.p).map(x=>({l:x.n,r:fm(x.o)+' → '+fm(x.p)}));
+if(!rows.length)return alert('Không có món nào đổi giá trong 7 ngày qua');dr('Phiếu đổi giá',rows)}
+async function dr(t,rows){try{await document.fonts.load('700 28px "Be Vietnam Pro"')}catch(e){}
+const W=720,P=36,RH=54,HH=150,N=18,pages=[],FF='"Be Vietnam Pro",system-ui,sans-serif',SF='Fraunces,Georgia,serif',c=S.cfg.color;PG=[];
+for(let i=0;i<rows.length;i+=N)pages.push(rows.slice(i,i+N));
+pages.forEach((pr,pi)=>{const cv=document.createElement('canvas'),H=HH+pr.length*RH+70;cv.width=W;cv.height=H;const x=cv.getContext('2d');
+x.fillStyle='#f6f1e4';x.fillRect(0,0,W,H);x.fillStyle=c;x.fillRect(0,0,W,HH-20);
+x.fillStyle='#fff';x.font='700 38px '+SF;x.fillText(S.cfg.name,P,62);
+x.fillStyle='#e9c46a';x.font='600 26px '+FF;x.fillText(t+' · '+new Date().toLocaleDateString('vi-VN'),P,104);
+pr.forEach((r,k)=>{const y=HH+k*RH,ty=y+RH/2+6;
+if(r.h){x.fillStyle='#e9c46a66';x.fillRect(P-12,y,W-2*P+24,RH-6);x.fillStyle=c;x.font='700 26px '+FF;x.fillText(r.h,P,ty);return}
+x.fillStyle=k%2?'#ffffff':'#ffffffaa';x.fillRect(P-12,y,W-2*P+24,RH-6);
+x.font='700 26px '+FF;const rw=x.measureText(r.r).width;x.fillStyle='#222';x.textAlign='right';x.fillText(r.r,W-P,ty);x.textAlign='left';
+x.font='400 25px '+FF;let s=r.l;const mw=W-2*P-rw-24;while(s.length>3&&x.measureText(s).width>mw)s=s.slice(0,-2);if(s!=r.l)s=s.trim()+'…';x.fillText(s,P,ty)});
+x.fillStyle='#777';x.font='400 20px '+FF;x.fillText('Trang '+(pi+1)+'/'+pages.length,P,H-26);PG.push(cv)});
+$('#mb').innerHTML=`<h3 style="font-family:Fraunces,serif">${E(t)}</h3>${PG.map(p=>`<img alt="" src="${p.toDataURL('image/png')}" style="width:100%;border:1px solid var(--ln);border-radius:8px;margin-bottom:8px">`).join('')}<div class="row"><button class="btn" onclick="pgs()">Chia sẻ</button><button class="btn o" onclick="pgd()">Tải ảnh</button><button class="btn o" onclick="$('#md').classList.remove('on')">Đóng</button></div>`;$('#md').classList.add('on')}
+const pgb=()=>Promise.all(PG.map((c,i)=>new Promise(r=>c.toBlob(b=>r(new File([b],'tinhgia-'+(i+1)+'.png',{type:'image/png'})),'image/png'))));
+async function pgs(){const f=await pgb();if(navigator.canShare&&navigator.canShare({files:f}))navigator.share({files:f,title:S.cfg.name}).catch(()=>{});else{alert('Máy này chưa chia sẻ ảnh trực tiếp được, ảnh sẽ được tải về.');pgd()}}
+async function pgd(){(await pgb()).forEach((f,i)=>setTimeout(()=>{const a=document.createElement('a');a.href=URL.createObjectURL(f);a.download=f.name;a.click()},i*400))}
 R();if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js');
 </script></body></html>
