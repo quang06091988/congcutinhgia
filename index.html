@@ -89,7 +89,7 @@ ${i.t=='b'?`<div class="row"><div><label>Giá nhập cả lố</label><input id=
 $('#md').classList.add('on')}
 function es(){gf();if(!ED.n.trim())return alert('Nhập tên hàng');ED.n=ED.n.trim();ED.g=ED.g.trim()||'Khác';
 if(ED.id)S.items[S.items.findIndex(x=>x.id==ED.id)]=ED;else{ED.id='i'+Date.now().toString(36);S.items.push(ED)}
-save();$('#md').classList.remove('on');R()}
+hvAll();save();$('#md').classList.remove('on');R()}
 function edl(){if(confirm('Xoá hàng này?')){S.items=S.items.filter(x=>x.id!=ED.id);save();$('#md').classList.remove('on');R()}}
 const csv=r=>r.map(a=>a.map(c=>'"'+String(c).replace(/"/g,'""')+'"').join(',')).join('\n');
 function dl(n,t,m){const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([m=='j'?t:'\ufeff'+t],{type:m=='j'?'application/json':'text/csv'}));a.download=n;a.click()}
@@ -110,7 +110,7 @@ if(iQ>=0){cost=num(a[iP]);const m=(a[iQ]||'').match(/([\d.,]+)\s*([^\/\d]*?)\s*\
 else{cost=num(a[iV]);price=num(a[iP])}
 if(ex){if(ex.t=='b'&&cost&&(ex.cost!=cost||(pm&&ex.q!=q))){ex.cost=cost;if(pm){ex.q=q;ex.u=u;ex.lu=lu}up++}return}
 S.items.push({id:'i'+Date.now().toString(36)+n,t:'b',g:(a[iG]||'Khác').trim()||'Khác',n:nm,u,lu,q,cost,ing:[],waste:0,extra:0,price,vs:price?cost/q:0});n++});
-save();alert('Đã nhập '+n+' hàng mới, cập nhật giá nhập '+up+' hàng');R()})}
+hvAll();save();alert('Đã nhập '+n+' hàng mới, cập nhật giá nhập '+up+' hàng');R()})}
 
 /* ---------- Tính giá ---------- */
 function calc(){const c=S.cfg,sel=S.items.find(x=>x.id==TG.id),v=sel?von(sel):num(TG.cost)/(num(TG.q)||1),
@@ -127,10 +127,10 @@ ${sel?'':`<div class="row"><div><label>Giá nhập cả lố</label><input input
 ${sel&&sel.t=='c'?sel.ing.map(l=>{const g=S.items.find(x=>x.id==l.id);return g?`<div class="it sm"><span>${E(g.n)}: ${l.amt} ${E(l.unit||g.u)}</span><span>${fm(von(g)*l.amt*cf(l.unit||g.u,g.u))}</span></div>`:''}).join(''):''}
 <label>${c.mode=='fc'?'Giá vốn chiếm % giá bán':'% lãi trên giá vốn'}</label>
 <input inputmode="decimal" value="${r.pc}" oninput="TG.p=num(this.value);U()"></div>
-<div class="card" id="rs">${RS(r)}</div>
+<div class="card" id="rs">${RS(r)}</div>${HC(sel)}
 ${sel?`<button class="btn" style="width:100%" onclick="lg()">Lưu giá vào hàng hoá và sổ giá</button>`:'<button class="btn o" style="width:100%" onclick="ln()">Lưu thành hàng mới</button>'}`};
 function lg(){const r=calc();if(!r.sel||!r.p)return alert('Chưa có giá để lưu');const i=r.sel;
-S.log.unshift({d:Date.now(),id:i.id,n:i.n,g:i.g,v:Math.round(r.v),o:i.price||0,p:r.p});i.price=r.p;i.vs=r.v;save();alert('Đã lưu giá '+fm(r.p));R()}
+S.log.unshift({d:Date.now(),id:i.id,n:i.n,g:i.g,v:Math.round(r.v),o:i.price||0,p:r.p});i.price=r.p;i.vs=r.v;hvAll();save();alert('Đã lưu giá '+fm(r.p));R()}
 
 /* ---------- Sổ giá ---------- */
 const IT=()=>S.items.filter(i=>i.price&&von(i)>0).map(i=>{const v=von(i);return{i,v,m:mg(v,i.price)}});
@@ -138,7 +138,7 @@ const AV=a=>a.length?a.reduce((s,x)=>s+x.m,0)/a.length:0;
 const SIM=()=>{const a=IT().map(x=>({...x,m2:mg(x.v*(1+SM/100),x.i.price)})),bad=a.filter(x=>x.m2<S.cfg.min&&x.m>=S.cfg.min);
 return `<div class="sm">Lãi trung bình ${AV(a).toFixed(1)}% xuống ${AV(a.map(x=>({m:x.m2}))).toFixed(1)}%. ${bad.length} hàng tụt dưới mức tối thiểu${bad.length?': '+bad.slice(0,5).map(x=>E(x.i.n)).join(', '):''}.</div>`};
 V.sg=()=>{const it=IT(),low=[...it].sort((a,b)=>a.m-b.m).slice(0,5),gs={};it.forEach(x=>(gs[x.i.g]=gs[x.i.g]||[]).push(x));
-return `${RVC()}<div class="card"><b>Báo cáo</b><div class="sm">${it.length} hàng đã có giá · lãi thực trung bình ${AV(it).toFixed(1)}%</div>
+return `${RVC()}${UPC()}<div class="card"><b>Báo cáo</b><div class="sm">${it.length} hàng đã có giá · lãi thực trung bình ${AV(it).toFixed(1)}%</div>
 <p><b>5 hàng lãi thấp nhất</b></p>${low.map(x=>`<div class="it"><span>${E(x.i.n)}</span><b class="${cls(x.v,x.i.price)}">${x.m.toFixed(1)}%</b></div>`).join('')||'<div class="sm">Chưa có dữ liệu</div>'}
 <p><b>Lãi trung bình theo nhóm</b></p>${Object.keys(gs).map(g=>`<div class="it"><span>${E(g)}</span><b>${AV(gs[g]).toFixed(1)}%</b></div>`).join('')}
 <p><b>Mô phỏng: giá nhập tăng</b> <input style="width:72px;display:inline" inputmode="decimal" value="${SM}" oninput="SM=num(this.value);$('#sim').innerHTML=SIM()"> %</p><div id="sim">${SIM()}</div></div>
@@ -176,10 +176,10 @@ const pctOf=i=>S.cfg.gp[i.g]??(S.cfg.mode=='fc'?S.cfg.fc:S.cfg.pct);
 const RV=()=>S.items.filter(i=>i.price&&i.vs&&Math.abs(von(i)-i.vs)/i.vs>.005).map(i=>{const v=von(i);return{i,v,p:rd(i.price*v/i.vs)}});
 const RVC=()=>{const a=RV();return a.length?`<div class="card" style="border-color:var(--ri)"><b>Cần xem lại giá (${a.length})</b><div class="sm">Giá vốn đã đổi so với lần lưu giá gần nhất. Giá đề xuất giữ nguyên tỉ lệ lãi hiện tại. Chạm vào món để chỉnh riêng.</div>${a.map(x=>`<div class="it" onclick="TG={id:'${x.i.id}',cost:'',q:'1',p:null};T='tg';R()"><div>${E(x.i.n)}<div class="sm">vốn ${fm(x.i.vs)} → ${fm(x.v)} (${(x.v/x.i.vs*100-100).toFixed(1)}%)</div></div><b>${fm(x.i.price)} → ${fm(x.p)}</b></div>`).join('')}<button class="btn" style="width:100%;margin-top:8px" onclick="rvAll()">Áp dụng tất cả giá đề xuất</button></div>`:''};
 function rvAll(){const a=RV();if(!a.length||!confirm('Áp dụng giá mới cho '+a.length+' hàng?'))return;
-a.forEach(x=>{S.log.unshift({d:Date.now(),id:x.i.id,n:x.i.n,g:x.i.g,v:Math.round(x.v),o:x.i.price,p:x.p});x.i.price=x.p;x.i.vs=x.v});save();R()}
+a.forEach(x=>{S.log.unshift({d:Date.now(),id:x.i.id,n:x.i.n,g:x.i.g,v:Math.round(x.v),o:x.i.price,p:x.p});x.i.price=x.p;x.i.vs=x.v});hvAll();save();R()}
 function ln(){const r=calc();if(!r.p)return alert('Nhập giá nhập trước');const n=(prompt('Tên hàng mới?')||'').trim();if(!n)return;
 const i={id:'i'+Date.now().toString(36),t:'b',g:'Khác',n,u:'cái',lu:'lố',q:num(TG.q)||1,cost:num(TG.cost),ing:[],waste:0,extra:0,price:r.p,vs:r.v};
-S.items.push(i);S.log.unshift({d:Date.now(),id:i.id,n,g:i.g,v:Math.round(r.v),o:0,p:r.p});TG={id:i.id,cost:'',q:'1',p:null};save();R()}
+S.items.push(i);S.log.unshift({d:Date.now(),id:i.id,n,g:i.g,v:Math.round(r.v),o:0,p:r.p});TG={id:i.id,cost:'',q:'1',p:null};hvAll();save();R()}
 const GPC=()=>{const c=S.cfg,G=[...new Set(S.items.map(x=>x.g))];return G.length?`<div class="card"><b>% riêng theo nhóm</b><div class="sm">Để trống là dùng % mặc định. Giá trị hiểu theo cách tính đang chọn.</div>${G.map((g,k)=>`<label>${E(g)}</label><input inputmode="decimal" value="${c.gp[g]??''}" onchange="gset(${k},this.value)">`).join('')}</div>`:''};
 function gset(k,v){const g=[...new Set(S.items.map(x=>x.g))][k];if(String(v).trim()==='')delete S.cfg.gp[g];else S.cfg.gp[g]=num(v);TG.p=null;save();R()}
 S.cfg.gp=S.cfg.gp||{};S.items.forEach(i=>{if(i.price&&!i.vs)i.vs=von(i)});
@@ -210,5 +210,16 @@ $('#mb').innerHTML=`<h3 style="font-family:Fraunces,serif">${E(t)}</h3>${PG.map(
 const pgb=()=>Promise.all(PG.map((c,i)=>new Promise(r=>c.toBlob(b=>r(new File([b],'tinhgia-'+(i+1)+'.png',{type:'image/png'})),'image/png'))));
 async function pgs(){const f=await pgb();if(navigator.canShare&&navigator.canShare({files:f}))navigator.share({files:f,title:S.cfg.name}).catch(()=>{});else{alert('Máy này chưa chia sẻ ảnh trực tiếp được, ảnh sẽ được tải về.');pgd()}}
 async function pgd(){(await pgb()).forEach((f,i)=>setTimeout(()=>{const a=document.createElement('a');a.href=URL.createObjectURL(f);a.download=f.name;a.click()},i*400))}
+/* ---------- Bản 4: lịch sử và biểu đồ giá vốn ---------- */
+function hvAll(){const t=Date.now();S.items.forEach(i=>{const v=von(i);if(!(v>0))return;i.hv=i.hv||[];const l=i.hv[i.hv.length-1];
+if(!l||Math.abs(v-l[1])/l[1]>.001){i.hv.push([t,Math.round(v*100)/100]);if(i.hv.length>60)i.hv.shift()}})}
+const HC=i=>{if(!i)return'';if(!i.hv||i.hv.length<2)return'<div class="card sm">Diễn biến giá vốn: cần ít nhất 2 lần giá vốn thay đổi để vẽ biểu đồ.</div>';
+const h=i.hv,vs=h.map(x=>x[1]),mn=Math.min(...vs),mx=Math.max(...vs),t0=h[0][0],t1=h[h.length-1][0],W=300,H=110,
+X=t=>10+(t1>t0?(t-t0)/(t1-t0):0)*(W-20),Y=v=>H-14-(mx>mn?(v-mn)/(mx-mn):.5)*(H-34),ch=vs[vs.length-1]/vs[0]*100-100,d=t=>new Date(t).toLocaleDateString('vi-VN');
+return `<div class="card"><b>Diễn biến giá vốn</b><div class="sm">${d(t0)} → ${d(t1)} · <span class="${ch>0?'bad':'ok'}">${ch>0?'+':''}${ch.toFixed(1)}%</span></div>
+<svg viewBox="0 0 ${W} ${H}" style="width:100%" role="img" aria-label="Biểu đồ giá vốn"><polyline points="${h.map(x=>X(x[0]).toFixed(1)+','+Y(x[1]).toFixed(1)).join(' ')}" fill="none" stroke="var(--c)" stroke-width="2"/>${h.map(x=>`<circle cx="${X(x[0]).toFixed(1)}" cy="${Y(x[1]).toFixed(1)}" r="3" fill="var(--c)"/>`).join('')}<text x="10" y="10" font-size="10" fill="#777">${fm(mx)}</text><text x="10" y="${H-2}" font-size="10" fill="#777">${fm(mn)}</text></svg></div>`};
+const UPC=()=>{const lim=Date.now()-2592e6,a=S.items.map(i=>{const h=i.hv||[];if(h.length<2)return null;let b=h[0];for(const x of h)if(x[0]<=lim)b=x;const v=h[h.length-1][1];return{i,b:b[1],v,c:v/b[1]*100-100}}).filter(x=>x&&x.c>.5).sort((p,q)=>q.c-p.c).slice(0,5);
+return a.length?`<div class="card"><b>Giá vốn tăng nhiều nhất (30 ngày)</b>${a.map(x=>`<div class="it"><span>${E(x.i.n)}<div class="sm">${fm(x.b)} → ${fm(x.v)}</div></span><b class="bad">+${x.c.toFixed(1)}%</b></div>`).join('')}</div>`:''};
+hvAll();
 R();if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js');
 </script></body></html>
