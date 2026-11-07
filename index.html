@@ -4,6 +4,7 @@
 <title>Công cụ tính giá</title>
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon.svg">
+<link rel="apple-touch-icon" href="icon-512.png">
 <meta name="theme-color" content="#2f5233">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;600;700&family=Fraunces:wght@600;700&display=swap">
 <style>
@@ -30,6 +31,7 @@ label{font-size:12px;color:#666}
 .sm{font-size:12px;color:#777}
 #md{position:fixed;inset:0;background:#0008;display:none;align-items:flex-end;z-index:9}#md.on{display:flex}
 #md>div{background:var(--bg);width:100%;max-height:92%;overflow:auto;border-radius:16px 16px 0 0;padding:14px}
+.lk{margin-bottom:10px}.lk .btn{text-align:center;text-decoration:none;padding:10px 4px;font-size:13px}
 @media print{header,nav,.np{display:none}}
 </style></head><body>
 <header><b id="hn"></b><span id="hl"></span></header>
@@ -37,7 +39,7 @@ label{font-size:12px;color:#666}
 <div id="md"><div id="mb"></div></div>
 <script>
 const K='tg1',$=s=>document.querySelector(s),V={};
-const D={cfg:{name:'Tiệm của tôi',color:'#2f5233',mode:'markup',pct:20,fc:35,step:500,rnd:'near',min:10,waste:0,extra:0,urlBan:'',urlDat:''},items:[],log:[]};
+const D={cfg:{name:'Tiệm của tôi',color:'#2f5233',mode:'markup',pct:20,fc:35,step:500,rnd:'near',min:10,waste:0,extra:0,urlBan:'https://congcubanhang.vercel.app/',urlDat:'https://congcudathang.vercel.app/',gp:{}},items:[],log:[]};
 let S,T='hh',Q='',ED=null,SM=5,TG={id:'',cost:'',q:'1',p:null},OT=[];
 try{S=JSON.parse(localStorage[K]);S.cfg={...D.cfg,...S.cfg}}catch(e){S=JSON.parse(JSON.stringify(D))}
 const save=()=>{try{localStorage[K]=JSON.stringify(S)}catch(e){alert('Không lưu được dữ liệu trên máy này')}};
@@ -57,14 +59,13 @@ const cls=(v,p)=>p<v?'bad':mg(v,p)<S.cfg.min?'warn':'ok';
 const TABS=[['hh','📦','Hàng hoá'],['tg','🧮','Tính giá'],['sg','📒','Sổ giá'],['cd','⚙️','Cài đặt']];
 function R(){
 document.documentElement.style.setProperty('--c',S.cfg.color);$('#hn').textContent=S.cfg.name;
-$('#hl').innerHTML=(S.cfg.urlBan?`<a href="${E(S.cfg.urlBan)}">Bán hàng</a>`:'')+(S.cfg.urlDat?`<a href="${E(S.cfg.urlDat)}">Đặt hàng</a>`:'');
-$('#nv').innerHTML=TABS.map(t=>`<button class="${T==t[0]?'on':''}" onclick="T='${t[0]}';R()">${t[1]}<br>${t[2]}</button>`).join('');
+$('#nv').innerHTML=TABS.map(t=>`<button class="${T==t[0]?'on':''}" onclick="T='${t[0]}';R()">${t[1]}<br>${t[2]}${t[0]=='sg'&&RV().length?' ('+RV().length+')':''}</button>`).join('');
 $('#m').innerHTML=V[T]()}
 
 /* ---------- Hàng hoá ---------- */
 const LS=()=>{const l=S.items.filter(i=>(i.n+' '+i.g).toLowerCase().includes(Q.toLowerCase()));
 return l.map(i=>{const v=von(i);return `<div class="it" onclick="ed('${i.id}')"><div>${E(i.n)}<span class="chip">${i.t=='c'?'chế biến':'mua bán'}</span><div class="sm">${E(i.g)} · vốn ${fm(v)}/${E(i.u)}</div></div><b class="${i.price?cls(v,i.price):''}">${i.price?fm(i.price):'—'}</b></div>`}).join('')||'<div class="sm">Chưa có hàng nào. Bấm “+ Thêm” hoặc nhập CSV từ app Đặt hàng / Bán hàng.</div>'};
-V.hh=()=>`<div class="row np"><input id="q" placeholder="Tìm hàng…" value="${E(Q)}" oninput="Q=this.value;$('#lst').innerHTML=LS()"><button class="btn" style="flex:0 0 auto" onclick="ed()">+ Thêm</button></div>
+V.hh=()=>`${LN()}<div class="row np"><input id="q" placeholder="Tìm hàng…" value="${E(Q)}" oninput="Q=this.value;$('#lst').innerHTML=LS()"><button class="btn" style="flex:0 0 auto" onclick="ed()">+ Thêm</button></div>
 <div class="card" id="lst">${LS()}</div>
 <div class="row np"><button class="btn o" onclick="xp('ban')">Xuất CSV Bán hàng</button><button class="btn o" onclick="xp('dat')">Xuất CSV Đặt hàng</button></div>
 <div class="row np" style="margin-top:8px"><button class="btn o" onclick="$('#fc').click()">Nhập CSV</button></div>
@@ -102,17 +103,18 @@ if(c||a.length){a.push(c);r.push(a)}return r.filter(x=>x.join('').trim())}
 function imc(el){const f=el.files[0];if(!f)return;f.text().then(t=>{const r=pc(t);if(r.length<2)return alert('File trống');
 const H=r.shift().map(h=>h.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/đ/g,'d').trim());
 const ix=k=>H.findIndex(h=>h.includes(k)),iG=ix('nhom'),iN=ix('ten'),iU=ix('don vi'),iQ=ix('quy cach'),iP=H.findIndex(h=>h=='gia nhap'||h=='gia'),iV=ix('gia von');
-if(iN<0)return alert('Không thấy cột Tên');let n=0;
-r.forEach(a=>{const nm=(a[iN]||'').trim();if(!nm||S.items.some(x=>x.n==nm))return;
-let q=1,u=(a[iU]||'cái').trim(),lu='lố',cost=0,price=0;
-if(iQ>=0){cost=num(a[iP]);const m=(a[iQ]||'').match(/([\d.,]+)\s*([^\/\d]*?)\s*\//);if(m){q=num(m[1])||1;u=m[2].trim()||'cái';lu=(a[iU]||'lố').trim()}}
+if(iN<0)return alert('Không thấy cột Tên');let n=0,up=0;
+r.forEach(a=>{const nm=(a[iN]||'').trim();if(!nm)return;const ex=S.items.find(x=>x.n==nm);
+let pm=0,q=1,u=(a[iU]||'cái').trim(),lu='lố',cost=0,price=0;
+if(iQ>=0){cost=num(a[iP]);const m=(a[iQ]||'').match(/([\d.,]+)\s*([^\/\d]*?)\s*\//);if(m){pm=1;q=num(m[1])||1;u=m[2].trim()||'cái';lu=(a[iU]||'lố').trim()}}
 else{cost=num(a[iV]);price=num(a[iP])}
-S.items.push({id:'i'+Date.now().toString(36)+n,t:'b',g:(a[iG]||'Khác').trim()||'Khác',n:nm,u,lu,q,cost,ing:[],waste:0,extra:0,price});n++});
-save();alert('Đã nhập '+n+' hàng mới');R()})}
+if(ex){if(ex.t=='b'&&cost&&(ex.cost!=cost||(pm&&ex.q!=q))){ex.cost=cost;if(pm){ex.q=q;ex.u=u;ex.lu=lu}up++}return}
+S.items.push({id:'i'+Date.now().toString(36)+n,t:'b',g:(a[iG]||'Khác').trim()||'Khác',n:nm,u,lu,q,cost,ing:[],waste:0,extra:0,price,vs:price?cost/q:0});n++});
+save();alert('Đã nhập '+n+' hàng mới, cập nhật giá nhập '+up+' hàng');R()})}
 
 /* ---------- Tính giá ---------- */
 function calc(){const c=S.cfg,sel=S.items.find(x=>x.id==TG.id),v=sel?von(sel):num(TG.cost)/(num(TG.q)||1),
-pc=TG.p??(c.mode=='fc'?c.fc:c.pct),ok=v>0&&pc>0&&(c.mode!='fc'||pc<100),raw=ok?sug(v,pc):0;return{sel,v,pc,raw,p:raw?rd(raw):0}}
+pc=TG.p??(sel?pctOf(sel):(c.mode=='fc'?c.fc:c.pct)),ok=v>0&&pc>0&&(c.mode!='fc'||pc<100),raw=ok?sug(v,pc):0;return{sel,v,pc,raw,p:raw?rd(raw):0}}
 const RS=r=>r.v?`<div class="sm">Giá vốn / đơn vị</div><b>${fm(r.v)}</b>
 <div class="sm" style="margin-top:8px">Giá bán gợi ý (đã làm tròn)</div><div class="big">${fm(r.p)}</div><div class="sm">trước khi làm tròn: ${fm(r.raw)}</div>
 ${r.p?`<p class="${cls(r.v,r.p)}">Lãi thực ${mg(r.v,r.p).toFixed(1)}% trên vốn, vốn chiếm ${(r.v/r.p*100).toFixed(1)}% giá bán${r.p<r.v?'. ĐANG LỖ':mg(r.v,r.p)<S.cfg.min?'. Lãi thấp hơn mức tối thiểu':''}</p>`:''}`
@@ -126,9 +128,9 @@ ${sel&&sel.t=='c'?sel.ing.map(l=>{const g=S.items.find(x=>x.id==l.id);return g?`
 <label>${c.mode=='fc'?'Giá vốn chiếm % giá bán':'% lãi trên giá vốn'}</label>
 <input inputmode="decimal" value="${r.pc}" oninput="TG.p=num(this.value);U()"></div>
 <div class="card" id="rs">${RS(r)}</div>
-${sel?`<button class="btn" style="width:100%" onclick="lg()">Lưu giá vào hàng hoá và sổ giá</button>`:'<div class="sm">Chọn một hàng trong danh sách để lưu giá.</div>'}`};
+${sel?`<button class="btn" style="width:100%" onclick="lg()">Lưu giá vào hàng hoá và sổ giá</button>`:'<button class="btn o" style="width:100%" onclick="ln()">Lưu thành hàng mới</button>'}`};
 function lg(){const r=calc();if(!r.sel||!r.p)return alert('Chưa có giá để lưu');const i=r.sel;
-S.log.unshift({d:Date.now(),id:i.id,n:i.n,g:i.g,v:Math.round(r.v),o:i.price||0,p:r.p});i.price=r.p;save();alert('Đã lưu giá '+fm(r.p));R()}
+S.log.unshift({d:Date.now(),id:i.id,n:i.n,g:i.g,v:Math.round(r.v),o:i.price||0,p:r.p});i.price=r.p;i.vs=r.v;save();alert('Đã lưu giá '+fm(r.p));R()}
 
 /* ---------- Sổ giá ---------- */
 const IT=()=>S.items.filter(i=>i.price&&von(i)>0).map(i=>{const v=von(i);return{i,v,m:mg(v,i.price)}});
@@ -136,7 +138,7 @@ const AV=a=>a.length?a.reduce((s,x)=>s+x.m,0)/a.length:0;
 const SIM=()=>{const a=IT().map(x=>({...x,m2:mg(x.v*(1+SM/100),x.i.price)})),bad=a.filter(x=>x.m2<S.cfg.min&&x.m>=S.cfg.min);
 return `<div class="sm">Lãi trung bình ${AV(a).toFixed(1)}% xuống ${AV(a.map(x=>({m:x.m2}))).toFixed(1)}%. ${bad.length} hàng tụt dưới mức tối thiểu${bad.length?': '+bad.slice(0,5).map(x=>E(x.i.n)).join(', '):''}.</div>`};
 V.sg=()=>{const it=IT(),low=[...it].sort((a,b)=>a.m-b.m).slice(0,5),gs={};it.forEach(x=>(gs[x.i.g]=gs[x.i.g]||[]).push(x));
-return `<div class="card"><b>Báo cáo</b><div class="sm">${it.length} hàng đã có giá · lãi thực trung bình ${AV(it).toFixed(1)}%</div>
+return `${RVC()}<div class="card"><b>Báo cáo</b><div class="sm">${it.length} hàng đã có giá · lãi thực trung bình ${AV(it).toFixed(1)}%</div>
 <p><b>5 hàng lãi thấp nhất</b></p>${low.map(x=>`<div class="it"><span>${E(x.i.n)}</span><b class="${cls(x.v,x.i.price)}">${x.m.toFixed(1)}%</b></div>`).join('')||'<div class="sm">Chưa có dữ liệu</div>'}
 <p><b>Lãi trung bình theo nhóm</b></p>${Object.keys(gs).map(g=>`<div class="it"><span>${E(g)}</span><b>${AV(gs[g]).toFixed(1)}%</b></div>`).join('')}
 <p><b>Mô phỏng: giá nhập tăng</b> <input style="width:72px;display:inline" inputmode="decimal" value="${SM}" oninput="SM=num(this.value);$('#sim').innerHTML=SIM()"> %</p><div id="sim">${SIM()}</div></div>
@@ -159,10 +161,27 @@ return `<div class="card"><b>Cửa hàng</b>${f('name','Tên cửa hàng')}<labe
 <div class="card"><b>Quy tắc giá</b><label>Cách tính</label><select onchange="cs('mode',this.value)">${o([['markup','% lãi trên giá vốn'],['fc','Giá vốn chiếm % giá bán']],c.mode)}</select>
 ${f('pct','% lãi mặc định','n')}${f('fc','% giá vốn mặc định (quán cà phê)','n')}${f('step','Bước làm tròn (đồng)','n')}
 <label>Kiểu làm tròn</label><select onchange="cs('rnd',this.value)">${o([['near','Gần nhất'],['up','Lên'],['down','Xuống']],c.rnd)}</select>${f('min','Cảnh báo khi lãi thực dưới (%)','n')}</div>
-<div class="card"><b>Chế biến, mặc định cho món mới</b>${f('waste','Hao hụt %','n')}${f('extra','Chi phí khác mỗi món (đồng)','n')}</div>
+${GPC()}<div class="card"><b>Chế biến, mặc định cho món mới</b>${f('waste','Hao hụt %','n')}${f('extra','Chi phí khác mỗi món (đồng)','n')}</div>
 <div class="card"><b>Liên kết tool khác</b>${f('urlBan','Địa chỉ app Bán hàng (https://…)')}${f('urlDat','Địa chỉ app Đặt hàng (https://…)')}</div>
 <div class="card"><b>Dữ liệu (lưu trên máy này)</b><div class="row"><button class="btn o" onclick="bk()">Sao lưu JSON</button><button class="btn o" onclick="$('#fj').click()">Khôi phục</button></div>
 <input id="fj" type="file" accept=".json" hidden onchange="rs2(this)"><br><button class="btn r" onclick="if(confirm('Xoá toàn bộ dữ liệu?')){S=JSON.parse(JSON.stringify(D));save();R()}">Xoá hết</button></div>`};
 
+/* ---------- Bản 2: nút ở màn hình chính, xem lại giá, % theo nhóm ---------- */
+let DP=null;const SA=()=>matchMedia('(display-mode: standalone)').matches||navigator.standalone;
+addEventListener('beforeinstallprompt',e=>{e.preventDefault();DP=e;R()});addEventListener('appinstalled',()=>{DP=null;R()});
+const UB=()=>S.cfg.urlBan||D.cfg.urlBan,UD=()=>S.cfg.urlDat||D.cfg.urlDat;
+const LN=()=>`<div class="row np lk">${SA()?'':'<button class="btn" onclick="inst()">📲 Cài app</button>'}<a class="btn o" href="${E(UB())}">🛒 Bán hàng</a><a class="btn o" href="${E(UD())}">📥 Đặt hàng</a></div>`;
+function inst(){if(DP){DP.prompt();DP=null;R()}else alert('iPhone: bấm nút Chia sẻ rồi chọn “Thêm vào MH chính”.\nAndroid: mở menu ⋮ của Chrome rồi chọn “Cài đặt ứng dụng”.')}
+const pctOf=i=>S.cfg.gp[i.g]??(S.cfg.mode=='fc'?S.cfg.fc:S.cfg.pct);
+const RV=()=>S.items.filter(i=>i.price&&i.vs&&Math.abs(von(i)-i.vs)/i.vs>.005).map(i=>{const v=von(i);return{i,v,p:rd(i.price*v/i.vs)}});
+const RVC=()=>{const a=RV();return a.length?`<div class="card" style="border-color:var(--ri)"><b>Cần xem lại giá (${a.length})</b><div class="sm">Giá vốn đã đổi so với lần lưu giá gần nhất. Giá đề xuất giữ nguyên tỉ lệ lãi hiện tại. Chạm vào món để chỉnh riêng.</div>${a.map(x=>`<div class="it" onclick="TG={id:'${x.i.id}',cost:'',q:'1',p:null};T='tg';R()"><div>${E(x.i.n)}<div class="sm">vốn ${fm(x.i.vs)} → ${fm(x.v)} (${(x.v/x.i.vs*100-100).toFixed(1)}%)</div></div><b>${fm(x.i.price)} → ${fm(x.p)}</b></div>`).join('')}<button class="btn" style="width:100%;margin-top:8px" onclick="rvAll()">Áp dụng tất cả giá đề xuất</button></div>`:''};
+function rvAll(){const a=RV();if(!a.length||!confirm('Áp dụng giá mới cho '+a.length+' hàng?'))return;
+a.forEach(x=>{S.log.unshift({d:Date.now(),id:x.i.id,n:x.i.n,g:x.i.g,v:Math.round(x.v),o:x.i.price,p:x.p});x.i.price=x.p;x.i.vs=x.v});save();R()}
+function ln(){const r=calc();if(!r.p)return alert('Nhập giá nhập trước');const n=(prompt('Tên hàng mới?')||'').trim();if(!n)return;
+const i={id:'i'+Date.now().toString(36),t:'b',g:'Khác',n,u:'cái',lu:'lố',q:num(TG.q)||1,cost:num(TG.cost),ing:[],waste:0,extra:0,price:r.p,vs:r.v};
+S.items.push(i);S.log.unshift({d:Date.now(),id:i.id,n,g:i.g,v:Math.round(r.v),o:0,p:r.p});TG={id:i.id,cost:'',q:'1',p:null};save();R()}
+const GPC=()=>{const c=S.cfg,G=[...new Set(S.items.map(x=>x.g))];return G.length?`<div class="card"><b>% riêng theo nhóm</b><div class="sm">Để trống là dùng % mặc định. Giá trị hiểu theo cách tính đang chọn.</div>${G.map((g,k)=>`<label>${E(g)}</label><input inputmode="decimal" value="${c.gp[g]??''}" onchange="gset(${k},this.value)">`).join('')}</div>`:''};
+function gset(k,v){const g=[...new Set(S.items.map(x=>x.g))][k];if(String(v).trim()==='')delete S.cfg.gp[g];else S.cfg.gp[g]=num(v);TG.p=null;save();R()}
+S.cfg.gp=S.cfg.gp||{};S.items.forEach(i=>{if(i.price&&!i.vs)i.vs=von(i)});
 R();if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js');
 </script></body></html>
