@@ -39,7 +39,7 @@ label{font-size:12px;color:#666}
 <div id="md"><div id="mb"></div></div>
 <script>
 const K='tg1',$=s=>document.querySelector(s),V={};
-const D={cfg:{name:'Tiệm của tôi',color:'#2f5233',mode:'markup',pct:20,fc:35,step:500,rnd:'near',min:10,waste:0,extra:0,urlBan:'https://congcubanhang.vercel.app/',urlDat:'https://congcudathang.vercel.app/',gp:{}},items:[],log:[]};
+const D={cfg:{name:'Tiệm của tôi',color:'#2f5233',mode:'markup',pct:20,fc:35,step:500,rnd:'near',min:10,waste:0,extra:0,urlBan:'https://congcubanhang.vercel.app/',urlDat:'https://congcudathang.vercel.app/',gp:{},bkd:7},items:[],log:[]};
 let S,T='hh',Q='',ED=null,SM=5,TG={id:'',cost:'',q:'1',p:null},OT=[];
 try{S=JSON.parse(localStorage[K]);S.cfg={...D.cfg,...S.cfg}}catch(e){S=JSON.parse(JSON.stringify(D))}
 const save=()=>{try{localStorage[K]=JSON.stringify(S)}catch(e){alert('Không lưu được dữ liệu trên máy này')}};
@@ -65,7 +65,7 @@ $('#m').innerHTML=V[T]()}
 /* ---------- Hàng hoá ---------- */
 const LS=()=>{const l=S.items.filter(i=>(i.n+' '+i.g).toLowerCase().includes(Q.toLowerCase()));
 return l.map(i=>{const v=von(i);return `<div class="it" onclick="ed('${i.id}')"><div>${E(i.n)}<span class="chip">${i.t=='c'?'chế biến':'mua bán'}</span><div class="sm">${E(i.g)} · vốn ${fm(v)}/${E(i.u)}</div></div><b class="${i.price?cls(v,i.price):''}">${i.price?fm(i.price):'—'}</b></div>`}).join('')||'<div class="sm">Chưa có hàng nào. Bấm “+ Thêm” hoặc nhập CSV từ app Đặt hàng / Bán hàng.</div>'};
-V.hh=()=>`${LN()}<div class="row np"><input id="q" placeholder="Tìm hàng…" value="${E(Q)}" oninput="Q=this.value;$('#lst').innerHTML=LS()"><button class="btn" style="flex:0 0 auto" onclick="ed()">+ Thêm</button></div>
+V.hh=()=>`${LN()}${BKC()}<div class="row np"><input id="q" placeholder="Tìm hàng…" value="${E(Q)}" oninput="Q=this.value;$('#lst').innerHTML=LS()"><button class="btn" style="flex:0 0 auto" onclick="ed()">+ Thêm</button></div>
 <div class="card" id="lst">${LS()}</div>
 <div class="row np"><button class="btn o" onclick="xp('ban')">Xuất CSV Bán hàng</button><button class="btn o" onclick="xp('dat')">Xuất CSV Đặt hàng</button></div>
 <div class="row np" style="margin-top:8px"><button class="btn o" onclick="$('#fc').click()">Nhập CSV</button><button class="btn o" onclick="bg()">🖼 Bảng giá ảnh</button></div>
@@ -152,7 +152,13 @@ navigator.share?navigator.share({text:x}).catch(()=>{}):navigator.clipboard.writ
 /* ---------- Cài đặt ---------- */
 function cs(k,v,t){S.cfg[k]=t=='n'?num(v):v;if((k=='urlBan'||k=='urlDat')&&v&&!/^https?:\/\//.test(v))S.cfg[k]='';TG.p=null;save();R()}
 function pr(m){Object.assign(S.cfg,m=='cafe'?{mode:'fc',fc:33,step:1000,waste:5}:{mode:'markup',pct:15,step:500,waste:0});TG.p=null;save();R()}
-function bk(){dl('tinhgia-'+new Date().toISOString().slice(0,10)+'.json',JSON.stringify(S),'j')}
+const bkn=()=>'tinhgia-'+new Date().toISOString().slice(0,10)+'.json';
+function bk(){S.lb=Date.now();save();dl(bkn(),JSON.stringify(S),'j');R()}
+function bks(){const f=new File([JSON.stringify(S)],bkn(),{type:'application/json'});
+if(navigator.canShare&&navigator.canShare({files:[f]}))navigator.share({files:[f],title:'Sao lưu '+S.cfg.name}).then(()=>{S.lb=Date.now();save();R()}).catch(()=>{});
+else{alert('Máy này chưa chia sẻ file trực tiếp được, file sao lưu sẽ được tải về.');bk()}}
+const BKC=()=>{const d=S.cfg.bkd;if(!S.items.length||!d)return'';const age=S.lb?(Date.now()-S.lb)/864e5:Infinity;if(age<d)return'';
+return `<div class="card np" style="border-color:#b26a00"><b class="warn">Nên sao lưu dữ liệu</b><div class="sm">${S.lb?'Lần sao lưu cuối cách đây '+Math.floor(age)+' ngày.':'Bạn chưa sao lưu lần nào.'} Dữ liệu chỉ nằm trên máy này, mất máy hoặc xoá dữ liệu trình duyệt là mất hết.</div><div class="row" style="margin-top:8px"><button class="btn" onclick="bks()">Gửi file sao lưu</button><button class="btn o" onclick="bk()">Tải về</button></div></div>`};
 function rs2(el){el.files[0].text().then(t=>{try{const j=JSON.parse(t);if(!Array.isArray(j.items))throw 0;S={...D,...j,cfg:{...D.cfg,...j.cfg}};save();R()}catch(e){alert('File sao lưu không hợp lệ')}})}
 V.cd=()=>{const c=S.cfg,f=(k,l,t='text')=>`<label>${l}</label><input ${t=='n'?'inputmode="decimal"':''} value="${E(c[k])}" onchange="cs('${k}',this.value,'${t}')">`,
 o=(a,v)=>a.map(x=>`<option value="${x[0]}" ${v==x[0]?'selected':''}>${x[1]}</option>`).join('');
@@ -163,7 +169,7 @@ ${f('pct','% lãi mặc định','n')}${f('fc','% giá vốn mặc định (quá
 <label>Kiểu làm tròn</label><select onchange="cs('rnd',this.value)">${o([['near','Gần nhất'],['up','Lên'],['down','Xuống']],c.rnd)}</select>${f('min','Cảnh báo khi lãi thực dưới (%)','n')}</div>
 ${GPC()}<div class="card"><b>Chế biến, mặc định cho món mới</b>${f('waste','Hao hụt %','n')}${f('extra','Chi phí khác mỗi món (đồng)','n')}</div>
 <div class="card"><b>Liên kết tool khác</b>${f('urlBan','Địa chỉ app Bán hàng (https://…)')}${f('urlDat','Địa chỉ app Đặt hàng (https://…)')}</div>
-<div class="card"><b>Dữ liệu (lưu trên máy này)</b><div class="row"><button class="btn o" onclick="bk()">Sao lưu JSON</button><button class="btn o" onclick="$('#fj').click()">Khôi phục</button></div>
+<div class="card"><b>Dữ liệu (lưu trên máy này)</b><div class="sm">Sao lưu lần cuối: ${S.lb?new Date(S.lb).toLocaleDateString('vi-VN'):'chưa lần nào'}</div>${f('bkd','Nhắc sao lưu sau (ngày, 0 là tắt)','n')}<div class="row"><button class="btn" onclick="bks()">Gửi file sao lưu</button><button class="btn o" onclick="bk()">Tải về</button></div><div class="row" style="margin-top:8px"><button class="btn o" onclick="$('#fj').click()">Khôi phục</button></div>
 <input id="fj" type="file" accept=".json" hidden onchange="rs2(this)"><br><button class="btn r" onclick="if(confirm('Xoá toàn bộ dữ liệu?')){S=JSON.parse(JSON.stringify(D));save();R()}">Xoá hết</button></div>`};
 
 /* ---------- Bản 2: nút ở màn hình chính, xem lại giá, % theo nhóm ---------- */
@@ -220,6 +226,7 @@ return `<div class="card"><b>Diễn biến giá vốn</b><div class="sm">${d(t0)
 <svg viewBox="0 0 ${W} ${H}" style="width:100%" role="img" aria-label="Biểu đồ giá vốn"><polyline points="${h.map(x=>X(x[0]).toFixed(1)+','+Y(x[1]).toFixed(1)).join(' ')}" fill="none" stroke="var(--c)" stroke-width="2"/>${h.map(x=>`<circle cx="${X(x[0]).toFixed(1)}" cy="${Y(x[1]).toFixed(1)}" r="3" fill="var(--c)"/>`).join('')}<text x="10" y="10" font-size="10" fill="#777">${fm(mx)}</text><text x="10" y="${H-2}" font-size="10" fill="#777">${fm(mn)}</text></svg></div>`};
 const UPC=()=>{const lim=Date.now()-2592e6,a=S.items.map(i=>{const h=i.hv||[];if(h.length<2)return null;let b=h[0];for(const x of h)if(x[0]<=lim)b=x;const v=h[h.length-1][1];return{i,b:b[1],v,c:v/b[1]*100-100}}).filter(x=>x&&x.c>.5).sort((p,q)=>q.c-p.c).slice(0,5);
 return a.length?`<div class="card"><b>Giá vốn tăng nhiều nhất (30 ngày)</b>${a.map(x=>`<div class="it"><span>${E(x.i.n)}<div class="sm">${fm(x.b)} → ${fm(x.v)}</div></span><b class="bad">+${x.c.toFixed(1)}%</b></div>`).join('')}</div>`:''};
+try{navigator.storage&&navigator.storage.persist&&navigator.storage.persist()}catch(e){}
 hvAll();
 R();if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js');
 </script></body></html>
